@@ -1,0 +1,45 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+
+    <form action="/contacts" method="get" class="tool-bar">
+        <label for="search">Search Term</label>
+        <input id="search" type="search" name="q" value="{{ request.args.get('q') or '' }}"/>
+        <input type="submit" value="Search"/>
+    </form>
+
+    <form>
+    <table>
+        <thead>
+        <tr>
+            <th></th>
+            <th>First</th>
+            <th>Last</th>
+            <th>Phone</th>
+            <th>Email</th>
+            <th></th>
+        </tr>
+        </thead>
+        <tbody>
+        {% include 'rows.html' %}
+        </tbody>
+    </table>
+    </form>
+    <!-- Paragraph below introduced to enable paging, see https://hypermedia.systems/htmx-patterns/#_another_application_improvement_paging -->
+    <p>
+      <div>
+        <span style="float: right">
+          {% if page > 1 %}
+            <a href="/contacts?page={{ page - 1 }}">Previous</a>
+          {% endif %}
+          {% if contacts|length == 10 %}
+            <a href="/contacts?page={{ page + 1 }}">Next</a>
+          {% endif %}
+        </span>
+      </div>
+    </p>
+    <p>
+        <a href="/contacts/new">Add Contact</a>
+    </p>
+
+{% endblock %}
