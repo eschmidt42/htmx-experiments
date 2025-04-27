@@ -13,7 +13,7 @@ Note that I've kept the code pieces from the book / authors' repo which I felt a
 
 [Install uv](https://docs.astral.sh/uv/getting-started/installation/). Clone this repo
 
-    git clone ...
+    git clone https://github.com/eschmidt42/htmx-experiments.git
 
 Install dependencies and create virtual env
 
