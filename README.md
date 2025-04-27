@@ -126,3 +126,6 @@ To start
     python app.py
 
 To use navigate in your browser to http://127.0.0.1:5006
+
+## References
+* HTML standard: https://html.spec.whatwg.org/multipage/
