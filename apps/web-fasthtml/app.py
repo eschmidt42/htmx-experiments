@@ -42,15 +42,13 @@ def contacts(headers: HtmxHeaders, q: str | None = None, page: int | None = 0):
     page = int(page) if page else 1
 
     if search is not None:
-        print("searching")
         contacts_set = Contact.search(search)
         if headers.trigger_name == "q":
             return get_rows(contacts=contacts_set)
     else:
-        print("using all")
         contacts_set = Contact.all(page)
-    print(f"{len(contacts_set)=}")
-    return get_index(contacts_set, search, page)
+
+    return get_index(contacts_set, page, search)
 
 
 @app.route("/contacts/count")

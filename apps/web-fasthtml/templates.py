@@ -67,9 +67,19 @@ def get_search(q: str | None = None) -> FT:
     )
 
 
-def get_index(contacts, search, page: int):
-    rows = get_rows(contacts)
+def get_layout(*args, h1_str: str = "contacts.app"):
+    title = Title("Contact App")
+    h1 = H1(h1_str)
+    return title, Container(h1, *args)
+
+
+def get_index(contacts, page: int, search: str | None = None):
+    archive_ui = get_archive_ui(Archiver.get())
+    search_ui = get_search(search)
+
     head = (Thead(Tr(Th("First"), Th("Last"), Th("Phone"), Th("Email"))),)
+    rows = get_rows(contacts)
+    table = Table(head, rows)
 
     a_previous = A("Previous", href=f"/contacts?page={page - 1}")
     a_next = A("Next", href=f"/contacts?page={page + 1}")
@@ -79,136 +89,86 @@ def get_index(contacts, search, page: int):
 
     counts = Span(hx_get="/contacts/count", hx_trigger="revealed")
 
-    return Title("Contact App"), Container(
-        H1("contacts.app"),
-        get_archive_ui(Archiver.get()),
-        get_search(search),
-        Table(head, rows),
+    return get_layout(
+        archive_ui,
+        search_ui,
+        table,
         pager,
         P(add_contacts, counts),
     )
 
 
+def get_contact_property_tag(
+    c: Contact, label: str, key: str, value: str, error_key: str
+):
+    return P(
+        Label(label, _for=key),
+        Input(
+            name=key,
+            id=key,
+            type="text",
+            placeholder=label,
+            value=value,
+        ),
+        Span(c.errors.get(error_key), _class="error"),
+    )
+
+
+def get_contact_email_tag(c: Contact):
+    return P(
+        Label("Email", _for="email"),
+        Input(
+            name="email",
+            id="email",
+            type="email",
+            hx_get=f"/contacts/{c.id}/email",
+            hx_target="next .error",
+            placeholder="Email",
+            value=f"{c.email}",
+        ),
+        Span(c.errors.get("email"), _class="error"),
+    )
+
+
 def get_new(c: Contact):
-    values = Fieldset(
+    contact_fields = Fieldset(
         Legend("Contact Values"),
         Div(
-            P(
-                Label("Email", _for="email"),
-                Input(
-                    name="email",
-                    id="email",
-                    type="email",
-                    hx_get=f"/contacts/{c.id}/email",
-                    hx_target="next .error",
-                    placeholder="Email",
-                    value=f"{c.email}",
-                ),
-                Span(c.errors.get("email"), _class="error"),
+            get_contact_email_tag(c),
+            get_contact_property_tag(
+                c, "First Name", "first_name", f"{c.first}", "first"
             ),
-            P(
-                Label("First Name", _for="first_name"),
-                Input(
-                    name="first_name",
-                    id="first_name",
-                    type="text",
-                    placeholder="First Name",
-                    value=f"{c.first}",
-                ),
-                Span(c.errors.get("first"), _class="error"),
-            ),
-            P(
-                Label("Last Name", _for="last_name"),
-                Input(
-                    name="last_name",
-                    id="last_name",
-                    type="text",
-                    placeholder="Last Name",
-                    value=f"{c.last}",
-                ),
-                Span(c.errors.get("last"), _class="error"),
-            ),
-            P(
-                Label("Phone", _for="phone"),
-                Input(
-                    name="phone",
-                    id="phone",
-                    type="text",
-                    placeholder="Phone",
-                    value=f"{c.phone}",
-                ),
-                Span(c.errors.get("phone"), _class="error"),
-            ),
+            get_contact_property_tag(c, "Last Name", "last_name", f"{c.last}", "last"),
+            get_contact_property_tag(c, "Phone", "phone", f"{c.phone}", "phone"),
             _class="table rows",
         ),
         Button("Save", type="submit"),
     )
 
-    return Title("Contact App"), Container(
-        H1("contacts.app"),
-        Form(values, action="/contacts/new", method="post"),
-        P(A("Back", href="/contacts")),
-    )
+    input_form = Form(contact_fields, action="/contacts/new", method="post")
+    navigation = P(A("Back", href="/contacts"))
+
+    return get_layout(input_form, navigation)
 
 
 def get_show(c: Contact):
-    return Title("Contact App"), Container(
-        H1(f"{c.first} {c.last}"),
-        Div(Div(f"Phone: {c.phone}"), Div(f"Email: {c.email}")),
-        P(A("Edit", href=f"/contacts/{c.id}/edit"), A("Back", href="/contacts")),
-    )
+    contact_values = Div(Div(f"Phone: {c.phone}"), Div(f"Email: {c.email}"))
+    a_edit = A("Edit", href=f"/contacts/{c.id}/edit")
+    a_back = A("Back", href="/contacts")
+
+    return get_layout(contact_values, P(a_edit, a_back), h1_str=f"{c.first} {c.last}")
 
 
 def get_edit(c: Contact):
-    values = Fieldset(
+    contact_fields = Fieldset(
         Legend("Contact Values"),
         Div(
-            P(
-                Label("Email", _for="email"),
-                Input(
-                    name="email",
-                    id="email",
-                    type="email",
-                    hx_get=f"/contacts/{c.id}/email",
-                    hx_target="next .error",
-                    placeholder="Email",
-                    value=f"{c.email}",
-                ),
-                Span(c.errors.get("email"), _class="error"),
+            get_contact_email_tag(c),
+            get_contact_property_tag(
+                c, "First Name", "first_name", f"{c.first}", "first"
             ),
-            P(
-                Label("First Name", _for="first_name"),
-                Input(
-                    name="first_name",
-                    id="first_name",
-                    type="text",
-                    placeholder="First Name",
-                    value=f"{c.first}",
-                ),
-                Span(c.errors.get("first"), _class="error"),
-            ),
-            P(
-                Label("Last Name", _for="last_name"),
-                Input(
-                    name="last_name",
-                    id="last_name",
-                    type="text",
-                    placeholder="Last Name",
-                    value=f"{c.last}",
-                ),
-                Span(c.errors.get("last"), _class="error"),
-            ),
-            P(
-                Label("Phone", _for="phone"),
-                Input(
-                    name="phone",
-                    id="phone",
-                    type="text",
-                    placeholder="Phone",
-                    value=f"{c.phone}",
-                ),
-                Span(c.errors.get("phone"), _class="error"),
-            ),
+            get_contact_property_tag(c, "Last Name", "last_name", f"{c.last}", "last"),
+            get_contact_property_tag(c, "Phone", "phone", f"{c.phone}", "phone"),
             _class="table rows",
         ),
         Button("Save", type="submit"),
@@ -222,11 +182,10 @@ def get_edit(c: Contact):
         ),
     )
 
-    return Title("Contact App"), Container(
-        H1("contacts.app"),
-        Form(values, action=f"/contacts/{c.id}/edit", method="post"),
-        P(A("Back", href="/contacts")),
-    )
+    edit_form = Form(contact_fields, action=f"/contacts/{c.id}/edit", method="post")
+    navigation = P(A("Back", href="/contacts"))
+
+    return get_layout(edit_form, navigation)
 
 
 def get_archive_ui(archiver: Archiver):
@@ -274,7 +233,7 @@ def get_archive_ui(archiver: Archiver):
                 ),
                 Button(
                     "Clear Download", hx_delete=f"{url}/delete"
-                ),  # # if "/update" is not used as in web4 / web5 etc this yields a 404 *shrug*
+                ),  # if "/update" is not used as in web4 / web5 etc this yields a 404 *shrug*
                 id=_id,
                 hx_target="this",
                 hx_swap="outerHTML",
